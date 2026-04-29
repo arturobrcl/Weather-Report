@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: weather_data
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  airflow:
+    image: apache/airflow:2.2.3
+    container_name: airflow
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres:5432/weather_data
+      - AIRFLOW__CORE__FERNET_KEY=<FERNET_KEY>
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/plugins:/opt/airflow/plugins
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  dbt:
+    image: fishtownanalytics/dbt:latest
+    container_name: dbt
+    environment:
+      - DBT_PROFILE_DIR=/root/.dbt
+    volumes:
+      - ./dbt:/root/dbt
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
