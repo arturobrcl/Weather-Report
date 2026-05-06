@@ -11,10 +11,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
-  
-  
-  hello:
-    image: hello-world
 
   airflow:
     image: apache/airflow:2.2.3-python3.8
